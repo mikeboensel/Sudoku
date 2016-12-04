@@ -10,6 +10,9 @@ if __name__ == '__main__':
 board = []
 cellPossibilities = {} #hashMap for position sets (possible values a cell can take)
 
+#useful in combo with the findNeighborRange() to get all box members
+cellFromEachBox = [(0,0), (0,4), (0,8), (4,0), (4,4), (4,8), (8,0), (8,4), (8,8)]    
+
 '''Only allowable dupe is the _ (unknown cell value) character
 '''
 def hasDupe(myList):
@@ -41,8 +44,8 @@ def getRow(y):
 def getCol(x):
     checkPositionRange(x, "From getCol")
     col = []
-    for i in range(0,9):
-        col.append(getRow(i)[x])
+    for y in range(0,9):
+        col.append(getRow(y)[x])
         
     return col
 
@@ -59,21 +62,25 @@ def findNeighborsRanges (a):
         return [6,7,8]
     return None
     
-def getNeighbors(x, y):
+def getBoxNeighbors(x, y):
+    boxMembers = getBoxNeighborCoordList(x, y)
+    
+    box = []
+    for member in boxMembers:
+        box.append(getPosition(member[0], member[1]))
+    return box
+
+def getBoxNeighborCoordList(x,y):
     checkPositionRange(x, "GetBox x")
     checkPositionRange(y, "GetBox y")
     
     xRange = findNeighborsRanges(x)    
     yRange = findNeighborsRanges(y)
-    
-    box = []
-    for i in range(len(xRange)):
-        for j in range(len(yRange)):
-            box.append(getPosition(xRange[i], yRange[j]))
-    return box
+
+    return [(x,y) for x in xRange for y in yRange]
 
 def printNeighborsAsBox(x,y):
-    neighbors = getNeighbors(x, y)
+    neighbors = getBoxNeighbors(x, y)
     out = ''
     for i in range(9):
         out += neighbors[i] + ' '
@@ -106,10 +113,8 @@ def isvalidBoard():
         if hasDupe(getCol(i)):
             return False
         
-    cellFromEachBox = [(0,0), (0,4), (0,8), (4,0), (4,4), (4,8), (8,0), (8,4), (8,8)]    
-
     for cell in cellFromEachBox:
-        if hasDupe(getNeighbors(cell[0], cell[1])):
+        if hasDupe(getBoxNeighbors(cell[0], cell[1])):
             return False
 
     return True
@@ -132,6 +137,7 @@ def build1To9Set():
     s = set()
     for i in range(1,10):
         s.add(i)
+    return s
 
 
 def updateUnknownCell(x, y, val):
@@ -142,31 +148,39 @@ def updateUnknownCell(x, y, val):
     board[y][x] = val
 
 
+def compareBoxPossibilities():
+    #combine all other neighbors, take difference of cell under inquiry, anything it and only it can be? If so set cell to that value
+    
+    pass
+
+
 def solve():
-    for i in range(9):
-        row = getRow(i)
-        j = 0
-        for r in row:
-            if r != '_':
+    for y in range(9):
+        row = getRow(y)
+        for x in range(9):
+            if row[x] != '_':
                 continue #value already known
             
-            s = build1To9Set()
-            neighborSet = set(getNeighbors(j, i))
+            s = set(["1","2","3","4","5","6","7","8","9"]) #all possibilities
+            #start whittling down what cell can be
+            neighborSet = set(getBoxNeighbors(x, y))
             s.difference_update(neighborSet)
             
-            colSet = set(getCol(j))
+            colSet = set(getCol(x))
             s.difference_update(colSet)
             
-            rowSet = set(getRow(i))
+            rowSet = set(getRow(y))
             s.difference_update(rowSet)
             
             if len(s) == 1:#only one value remains, solved the cell
-                updateUnknownCell(j,i, (list(s))[0])
+                updateUnknownCell(x,y, (list(s))[0])
                 printBoard()
             else:
-                cellPossibilities[(j,i)] = s
-            j+=1
-        #completed a single iteration, multiple may be required
+                cellPossibilities[(x,y)] = s
+        
+            
+    #completed a single iteration, multiple may be required
+    compareBoxPossibilities()
 
 def readInGame(q):
     tokens = q.split()
@@ -209,13 +223,13 @@ q = ''' 3 1 _ | _ _ _  | _ _ _
  _ _ _ | _ _ _ | _ 3 7'''
 
 readInGame(q)
-print(getRow(0))
- 
-print(getCol(0))
- 
-printBoard()
- 
-print(getNeighbors(8, 8))
-printNeighborsAsBox(8, 8)
-# solve()
-print (isvalidBoard())
+# print(getRow(0))
+#  
+# print(getCol(0))
+#  
+# printBoard()
+#  
+# print(getBoxNeighbors(8, 8))
+# printNeighborsAsBox(8, 8)
+solve()
+# print (isvalidBoard())
