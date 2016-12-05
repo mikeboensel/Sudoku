@@ -8,17 +8,17 @@ if __name__ == '__main__':
     pass
 
 board = []
-cellPossibilities = {} #hashMap for position sets (possible values a cell can take)
+cellPossibilities = {}  # hashMap for position sets (possible values a cell can take)
 
-#useful in combo with the findNeighborRange() to get all box members
-cellFromEachBox = [(0,0), (0,4), (0,8), (4,0), (4,4), (4,8), (8,0), (8,4), (8,8)]    
+# useful in combo with the findNeighborRange() to get all box members
+cellFromEachBox = [(0, 0), (0, 4), (0, 8), (4, 0), (4, 4), (4, 8), (8, 0), (8, 4), (8, 8)]    
 
 totalSolved = 0
 
 '''Only allowable dupe is the _ (unknown cell value) character
 '''
 def hasDupe(myList):
-    s= set()
+    s = set()
     for listItem in myList:
         if listItem in s and listItem != '_':
             return True
@@ -40,22 +40,22 @@ def getRow(y):
 def getCol(x):
     checkPositionRange(x, "From getCol")
     col = []
-    for y in range(0,9):
+    for y in range(0, 9):
         col.append(getRow(y)[x])
         
     return col
 
-def getPosition(x,y):
+def getPosition(x, y):
     row = getRow(y)
     return row[x]
     
 def findNeighborsRanges (a):
     if a <= 2:
-        return [0,1,2]
-    elif a <=5:
-        return [3,4,5]
-    elif a <=8:
-        return [6,7,8]
+        return [0, 1, 2]
+    elif a <= 5:
+        return [3, 4, 5]
+    elif a <= 8:
+        return [6, 7, 8]
     return None
     
 def getBoxNeighbors(x, y):
@@ -66,16 +66,16 @@ def getBoxNeighbors(x, y):
         box.append(getPosition(member[0], member[1]))
     return box
 
-def getBoxNeighborCoordList(x,y):
+def getBoxNeighborCoordList(x, y):
     checkPositionRange(x, "GetBox x")
     checkPositionRange(y, "GetBox y")
     
     xRange = findNeighborsRanges(x)    
     yRange = findNeighborsRanges(y)
 
-    return [(x,y) for x in xRange for y in yRange]
+    return [(x, y) for x in xRange for y in yRange]
 
-def printNeighborsAsBox(x,y):
+def printNeighborsAsBox(x, y):
     neighbors = getBoxNeighbors(x, y)
     out = ''
     for i in range(9):
@@ -89,20 +89,20 @@ def printNeighborsAsBox(x,y):
 '''
 def printBoard():
     global totalSolved
-    totalSolved +=1
+    totalSolved += 1
 
     print("{} cells solved:".format(totalSolved))
     
     out = ''
-    for y in range(9): #for reach row
+    for y in range(9):  # for reach row
         if y == 3 or y == 6:
             print('----------------------')
         row = getRow(y)
-        for x in range(9): # print a nice spaced, | delimited output
+        for x in range(9):  # print a nice spaced, | delimited output
             if x == 3 or x == 6:
                 out += '| '
-            out+=row[x]
-            out+= ' '
+            out += row[x]
+            out += ' '
             
         print(out)
         out = ''
@@ -112,15 +112,15 @@ def printBoard():
 def isvalidBoard():
     for i in range(9):
         if hasDupe(getRow(i)):
-            return False
+            return (False, "Failed verifying row " + str(i))
         if hasDupe(getCol(i)):
-            return False
+            return (False, "Failed verifying column " + str(i))
         
     for cell in cellFromEachBox:
         if hasDupe(getBoxNeighbors(cell[0], cell[1])):
-            return False
+            return (False, "Failed verifying box containing ({},{})".format(cell[0], cell[1]))
 
-    return True
+    return (True, '')
         
 def guardedAppend(tripletSize, expectedPipePosition, currRow, prevCharWasPipe):
     l = len(currRow)
@@ -131,14 +131,6 @@ def guardedAppend(tripletSize, expectedPipePosition, currRow, prevCharWasPipe):
         while len(currRow) < tripletSize:
             # Shortcut conditions appear next (meaning skipped a bunch of underscores for notational ease)
             currRow.append("_")
-
-'''@returns set with 1-9 (inclusive) values
-'''
-def build1To9Set():
-    s = set()
-    for i in range(1,10):
-        s.add(i)
-    return s
 
 '''Takes a key k, map m, and value.
 Check if the k is in the map. If so is the value in the set (the map's value). If so remove value from set.
@@ -152,8 +144,8 @@ def pythonBoilerplate(k, m, val):
 
 def updateDependentPossibilities(x, y, val):
     for t in range(9):
-        pythonBoilerplate((x,t), cellPossibilities, val)
-        pythonBoilerplate((t,y), cellPossibilities, val)
+        pythonBoilerplate((x, t), cellPossibilities, val)
+        pythonBoilerplate((t, y), cellPossibilities, val)
         
 #         if (x,t) in cellPossibilities:
 #             cellPossibilities[(x,t)].remove(val)
@@ -171,20 +163,22 @@ def updateDependentPossibilities(x, y, val):
 def updateUnknownCell(x, y, val):
     existingVal = getPosition(x, y)
     if existingVal != '_':
-        print("Bad attempt to update cell ({},{} ), tried to overwrite existing {} with {}".format(x,y,existingVal, val))
+        print("Bad attempt to update cell ({},{} ), tried to overwrite existing {} with {}".format(x, y, existingVal, val))
         exit
+    print("Updating cell ({},{}) to {}".format(x, y, val))
     board[y][x] = val
     
     printBoard()
     
-    if isvalidBoard() == False:
-        print("Broke at this point ")
+    test = isvalidBoard()
+    if test[0] == False:
+        print("Broke at this point. " + test[1])
         print(cellPossibilities)
             
-    if (x,y) in cellPossibilities:
-        cellPossibilities.pop((x,y)) #no longer a possibility, now the definite value
+    if (x, y) in cellPossibilities:
+        cellPossibilities.pop((x, y))  # no longer a possibility, now the definite value
 
-    updateDependentPossibilities(x,y,val)
+    updateDependentPossibilities(x, y, val)
 
 
 '''allNeighbors = [((x,y), setOfPossibleVals),....]
@@ -198,37 +192,68 @@ def combineOtherSets(allNeighbors, i):
 
 
 def compareBoxPossibilities():
-    #combine all other neighbors (not solved), take difference of cell under inquiry, anything it and only it can be? If so set cell to that value
     for cell in cellFromEachBox:
         allNeighbors = []
 
         for neighbor in getBoxNeighborCoordList(cell[0], cell[1]):
             if neighbor in cellPossibilities:
                 allNeighbors.append((neighbor, cellPossibilities[neighbor]))
+    
+        comparePossibilities(allNeighbors)    
                 
-        for i in range(len(allNeighbors)):
-            cellX,cellY = allNeighbors[i][0]
-            cellSet = allNeighbors[i][1].copy()
-            othersSet = combineOtherSets(allNeighbors,i)
-            cellSet.difference_update(othersSet)
-            if len(cellSet) == 1: #must be this value
-                updateUnknownCell(cellX, cellY, (list(cellSet))[0]) #possible set change as we are iterating over this list of sets issue?
-                
+''' Expected list of form [((x,y), {}), ((x1,y1), P{}),...]
+They have some commonality (all along a row, column, or within a group (box)
+Iterate through, picking a "target cell".
+Combine not solved, non-"target" cells, take difference of "target" from group.
+Anything it and only it can be? If so set cell to that value, apply new info to possibilities
+'''
+def comparePossibilities(commonList):
+    for i in range(len(commonList)):
+        cellX, cellY = commonList[i][0]
+        cellSet = commonList[i][1].copy()
+        othersSet = combineOtherSets(commonList, i)
+        cellSet.difference_update(othersSet)
+        if len(cellSet) == 1:  # must be this value
+            updateUnknownCell(cellX, cellY, (list(cellSet))[0])  # possible set change as we are iterating over this list of sets issue?
 
-
+    
+def compareRowAndColumnPossibilities():
+    # rows
+    l = []
+    for y in range(8):
+        for x in range(8):
+            if (x, y) in cellPossibilities:
+                l.append(((x, y), cellPossibilities[(x, y)]))
+                         
+        # at each row check
+        comparePossibilities(l)
+        l = []
+    
+    # columns
+    for x in range(8):
+        for y in range(8):
+            if (x, y) in cellPossibilities:
+                l.append(((x, y), cellPossibilities[(x, y)]))
+                         
+        # at each column check
+        comparePossibilities(l)
+        l = []
+    
+    
 def solve():
     
+    iterations = 1
     while True:
-        knownState = cellPossibilities.__str__() #state prior to any operations
-
+        knownState = cellPossibilities.__str__()  # state prior to any operations
+        print("Iterations of main loop: {}".format(iterations))
         for y in range(9):
             row = getRow(y)
             for x in range(9):
                 if row[x] != '_':
-                    continue #value already known
+                    continue  # value already known
                 
-                s = set(["1","2","3","4","5","6","7","8","9"]) #all possibilities
-                #start whittling down what cell can be
+                s = set(["1", "2", "3", "4", "5", "6", "7", "8", "9"])  # all possibilities
+                # start whittling down what cell can be
                 neighborSet = set(getBoxNeighbors(x, y))
                 s.difference_update(neighborSet)
                 
@@ -238,19 +263,20 @@ def solve():
                 rowSet = set(getRow(y))
                 s.difference_update(rowSet)
                                 
-                if len(s) == 1:#only one value remains, solved the cell
-                    updateUnknownCell(x,y, (list(s))[0])
+                if len(s) == 1:  # only one value remains, solved the cell
+                    updateUnknownCell(x, y, (list(s))[0])
                 else:
-                    cellPossibilities[(x,y)] = s
+                    cellPossibilities[(x, y)] = s
             
                 
-        #completed a single iteration, multiple may be required
+        # completed a single iteration, multiple may be required
         compareBoxPossibilities()
-        
-        if cellPossibilities.__str__() == knownState: #performed all ops and didn't make any headway... stop looping
+        compareRowAndColumnPossibilities()
+        if cellPossibilities.__str__() == knownState:  # performed all ops and didn't make any headway... stop looping
             print("Not making any progress. Need more solving techniques")
             break
         
+        iterations += 1  # TODO shouldn't need multiple iterations. Should be enough to just follow the thread that discoveries make...
         
         
 def readInGame(q):
@@ -260,6 +286,8 @@ def readInGame(q):
     prevCharWasPipe = False
     for t in tokens:
         l = len(currRow)
+        if '-------' in t: #box bottom line (just for visual differentiation purposes)
+            continue
         if t == '|':
             if l <= 3:
                 guardedAppend(3, 100, currRow, prevCharWasPipe)  # 100 is unreachable value in this case
@@ -282,6 +310,8 @@ def readInGame(q):
             currRow = []
 
 
+# def testEasy():
+#     readInGame()
 
 evil = ''' 
  5 3 _  | _ _ _  |  _ _ 6
@@ -294,13 +324,15 @@ evil = '''
  _ _ _  | 1 _ _  | 6 _ _  
  4 _ _  | _ _ _  | _ 5 9  
 '''
-template='''
+template = '''
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
+----------------------
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
+ ----------------------
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
@@ -319,17 +351,20 @@ hard = '''
  _ _ 1 | 3 9 _ | _ _ _'''
 
 easy = ''' 
- 3 1 _ | _ _ _ | _ _ _  
- _ _ _ | 7 1 _ | _ _ 2
- 9 8 2 | _ _ _ | 5 _ 1
- 8 _ _ | 1 9 _ | 2 _ 4 
- 4 _ _ | _ 5 _ | _ _ 9
- 6 _ 5 | _ 8 4 | _ _ 3
- 2 _ 6 | _ _ _ | 4 9 5
- 7 _ _ | _ 3 5 | _ _ _
- _ _ _ | _ _ _ | _ 3 7'''
+ 3 _ 5  | 6 _ _  | _ 1 _  
+ 9 6 8  | 4 _ _  | _ _ 2  
+ _ _ _  | _ 7 _  | 9 _ 6  
+----------------------
+ _ _ _  | _ _ 8  | 4 _ _  
+ _ 8 _  | _ _ _  | _ 7 _  
+ _ _ 4  | 9 _ _  | _ _ _  
+ ----------------------
+ 5 _ 3  | _ 1 _  | _ _ _  
+ 8 _ _  | _ _ 4  | 1 9 3  
+ _ 9 _  | _ _ 3  | 2 _ 5 '''
 
-readInGame(evil)
+readInGame(easy)
+
 # print(getRow(0))
 #  
 # print(getCol(0))
@@ -339,4 +374,18 @@ readInGame(evil)
 # print(getBoxNeighbors(8, 8))
 # printNeighborsAsBox(8, 8)
 solve()
+
+
+def serializeSolution():
+    
+    f = open("C:\\Users\\User\\Desktop\\Dev\\workspaces\\LiClipse2\\Sudoku\\output\\easy", "x")
+    for row in board:
+        for i in len(row):
+            f.write(row[i] + " ")
+            if i == 2 or i == 5:
+                f.write("\ ")
+        f.write("\n")
+    f.flush()
+
+# serializeSolution()
 # print (isvalidBoard())
