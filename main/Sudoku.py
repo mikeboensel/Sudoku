@@ -148,7 +148,7 @@ def pythonBoilerplate(k, m, val):
         if val in m[k]:
             m[k].remove(val)
             if len(m[k]) == 1:
-                updateUnknownCell(k[0], k[1], val)
+                updateUnknownCell(k[0], k[1], (list(m[k])[0]))
 
 def updateDependentPossibilities(x, y, val):
     for t in range(9):
@@ -279,6 +279,8 @@ def readInGame(q):
         if len(currRow) == 9:
             board.append(currRow)
             currRow = []
+
+
 
 
 q = ''' 3 1 _ | _ _ _  | _ _ _  
