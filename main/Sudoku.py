@@ -220,8 +220,8 @@ def comparePossibilities(commonList):
 def compareRowAndColumnPossibilities():
     # rows
     l = []
-    for y in range(8):
-        for x in range(8):
+    for y in range(9):
+        for x in range(9):
             if (x, y) in cellPossibilities:
                 l.append(((x, y), cellPossibilities[(x, y)]))
                          
@@ -230,8 +230,8 @@ def compareRowAndColumnPossibilities():
         l = []
     
     # columns
-    for x in range(8):
-        for y in range(8):
+    for x in range(9):
+        for y in range(9):
             if (x, y) in cellPossibilities:
                 l.append(((x, y), cellPossibilities[(x, y)]))
                          
@@ -286,7 +286,7 @@ def readInGame(q):
     prevCharWasPipe = False
     for t in tokens:
         l = len(currRow)
-        if '-------' in t: #box bottom line (just for visual differentiation purposes)
+        if '-------' in t:  # box bottom line (just for visual differentiation purposes)
             continue
         if t == '|':
             if l <= 3:
@@ -324,31 +324,33 @@ evil = '''
  _ _ _  | 1 _ _  | 6 _ _  
  4 _ _  | _ _ _  | _ 5 9  
 '''
-template = '''
- _ _ _  | _ _ _  | _ _ _  
- _ _ _  | _ _ _  | _ _ _  
- _ _ _  | _ _ _  | _ _ _  
+template = ''' 
+ _ _ _  | 5 _ 8  | 1 _ 7  
+ _ 3 _  | _ _ _  | _ _ _  
+ _ _ 6  | _ _ 9  | _ _ 5  
 ----------------------
- _ _ _  | _ _ _  | _ _ _  
- _ _ _  | _ _ _  | _ _ _  
- _ _ _  | _ _ _  | _ _ _  
+ _ 2 _  | _ _ _  | 8 _ 4  
+ _ _ 5  | _ 7 _  | 3 _ _  
+ 1 _ 3  | _ _ _  | _ 6 _  
  ----------------------
- _ _ _  | _ _ _  | _ _ _  
- _ _ _  | _ _ _  | _ _ _  
- _ _ _  | _ _ _  | _ _ _  
+ 3 _ _  | 9 _ _  | 6 _ _  
+ _ _ _  | _ _ _  | _ 1 _  
+ 9 _ 4  | 6 _ 5  | _ _ _ 
 '''
 
 
-hard = ''' 
- _ _ _ | _ 8 5 | 7 _ _
- 3 _ _ | _ _ _ | _ 1 _
- _ _ _ | 1 _ _ | 6 _ 9
- _ _ _ | 4 1 _ | 5 _ _
- 4 _ 2 | _ 7 _ | 8 _ 3
- _ _ 5 | _ 3 6 | _ _ _
- 9 _ 8 | _ _ 2 | _ _ _
- _ 4 _ | _ _ _ | _ _ 5
- _ _ 1 | 3 9 _ | _ _ _'''
+hard = '''
+ _ 8 4  | _ _ _  | _ _ _  
+ 2 _ _  | 8 _ _  | _ 5 7  
+ 5 _ _  | _ _ 9  | 4 _ _  
+----------------------
+ _ _ 2  | _ 1 _  | 3 9 5  
+ _ _ _  | _ _ _  | _ _ _  
+ 4 1 8  | _ 3 _  | 2 _ _  
+ ----------------------
+ _ _ 9  | 5 _ _  | _ _ 1  
+ 3 4 _  | _ _ 6  | _ _ 8  
+ _ _ _  | _ _ _  | 7 3 _ '''
 
 easy = ''' 
  3 _ 5  | 6 _ _  | _ 1 _  
@@ -363,7 +365,7 @@ easy = '''
  8 _ _  | _ _ 4  | 1 9 3  
  _ 9 _  | _ _ 3  | 2 _ 5 '''
 
-readInGame(easy)
+readInGame(template)
 
 # print(getRow(0))
 #  
