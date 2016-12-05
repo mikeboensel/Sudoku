@@ -248,6 +248,7 @@ def solve():
         compareBoxPossibilities()
         
         if cellPossibilities.__str__() == knownState: #performed all ops and didn't make any headway... stop looping
+            print("Not making any progress. Need more solving techniques")
             break
         
         
@@ -282,8 +283,43 @@ def readInGame(q):
 
 
 
+evil = ''' 
+ 5 3 _  | _ _ _  |  _ _ 6
+ _ _ 2  | _ _ 4  |  _ _ _  
+ _ _ _  | _ 6 5  | 8 _ _  
+ _ 8 _  | _ _ 2  | _ 9 _  
+ _ _ 7  | 4 _ 8  | 1 _ _  
+ _ 4 _  | 3 _ _  | _ 6 _  
+ _ _ 6  | 5 9 _  | _ _ _  
+ _ _ _  | 1 _ _  | 6 _ _  
+ 4 _ _  | _ _ _  | _ 5 9  
+'''
+template='''
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+'''
 
-q = ''' 3 1 _ | _ _ _  | _ _ _  
+
+hard = ''' 
+ _ _ _ | _ 8 5 | 7 _ _
+ 3 _ _ | _ _ _ | _ 1 _
+ _ _ _ | 1 _ _ | 6 _ 9
+ _ _ _ | 4 1 _ | 5 _ _
+ 4 _ 2 | _ 7 _ | 8 _ 3
+ _ _ 5 | _ 3 6 | _ _ _
+ 9 _ 8 | _ _ 2 | _ _ _
+ _ 4 _ | _ _ _ | _ _ 5
+ _ _ 1 | 3 9 _ | _ _ _'''
+
+easy = ''' 
+ 3 1 _ | _ _ _ | _ _ _  
  _ _ _ | 7 1 _ | _ _ 2
  9 8 2 | _ _ _ | 5 _ 1
  8 _ _ | 1 9 _ | 2 _ 4 
@@ -293,7 +329,7 @@ q = ''' 3 1 _ | _ _ _  | _ _ _
  7 _ _ | _ 3 5 | _ _ _
  _ _ _ | _ _ _ | _ 3 7'''
 
-readInGame(q)
+readInGame(evil)
 # print(getRow(0))
 #  
 # print(getCol(0))
