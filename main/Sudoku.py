@@ -4,8 +4,7 @@ Created on Dec 4, 2016
 @author: User
 '''
 
-if __name__ == '__main__':
-    pass
+from SudokuTools import * 
 
 board = []
 cellPossibilities = {}  # hashMap for position sets (possible values a cell can take)
@@ -15,20 +14,15 @@ cellFromEachBox = [(0, 0), (0, 4), (0, 8), (4, 0), (4, 4), (4, 8), (8, 0), (8, 4
 
 totalSolved = 0
 
-'''Only allowable dupe is the _ (unknown cell value) character
-'''
-def hasDupe(myList):
-    s = set()
-    for listItem in myList:
-        if listItem in s and listItem != '_':
-            return True
-        s.add(listItem)
-    return False
-    
-def checkPositionRange(pos, msg):
-    if pos > 8 or pos < 0:
-        print("Bad input " + pos + " " + msg)
-        exit
+#TODO
+#exclusionList = cells not to remove possibilities from (ex: in cases where 2 cells in a row have the same 2 values and MUST take those values, eliminating them for other cells, BUT crucially they are still possibilities for these 2 cells (we just don't know which belongs in which yet)
+#abstract to be fed a list of cells, then we just feed in neighbors, row, or col
+def removeRowPossibilities(rowNum, exclusionList, valueList):
+    #iterate over row
+    #for each cell in row
+    #if not in exclusion list
+    #apply all value list removals using the pythonBoilerPlate()
+    pass
 
 '''Pass in the y you are interested in 
 '''
@@ -49,15 +43,6 @@ def getPosition(x, y):
     row = getRow(y)
     return row[x]
     
-def findNeighborsRanges (a):
-    if a <= 2:
-        return [0, 1, 2]
-    elif a <= 5:
-        return [3, 4, 5]
-    elif a <= 8:
-        return [6, 7, 8]
-    return None
-    
 def getBoxNeighbors(x, y):
     boxMembers = getBoxNeighborCoordList(x, y)
     
@@ -66,14 +51,6 @@ def getBoxNeighbors(x, y):
         box.append(getPosition(member[0], member[1]))
     return box
 
-def getBoxNeighborCoordList(x, y):
-    checkPositionRange(x, "GetBox x")
-    checkPositionRange(y, "GetBox y")
-    
-    xRange = findNeighborsRanges(x)    
-    yRange = findNeighborsRanges(y)
-
-    return [(x, y) for x in xRange for y in yRange]
 
 def printNeighborsAsBox(x, y):
     neighbors = getBoxNeighbors(x, y)
@@ -147,18 +124,8 @@ def updateDependentPossibilities(x, y, val):
         pythonBoilerplate((x, t), cellPossibilities, val)
         pythonBoilerplate((t, y), cellPossibilities, val)
         
-#         if (x,t) in cellPossibilities:
-#             cellPossibilities[(x,t)].remove(val)
-#         if (t,y) in cellPossibilities:
-#             cellPossibilities[(t,y)].remove(val)
-        
     for n in getBoxNeighborCoordList(x, y):
         pythonBoilerplate(n, cellPossibilities, val)
-#         if n in cellPossibilities:
-#             if val in cellPossibilities[n]:
-#                 cellPossibilities[n].remove(val)    
-        
-
 
 def updateUnknownCell(x, y, val):
     existingVal = getPosition(x, y)
@@ -199,7 +166,9 @@ def compareBoxPossibilities():
             if neighbor in cellPossibilities:
                 allNeighbors.append((neighbor, cellPossibilities[neighbor]))
     
-        comparePossibilities(allNeighbors)    
+        comparePossibilities(allNeighbors)
+        
+        findMatchedPossibilities(allNeighbors)    
                 
 ''' Expected list of form [((x,y), {}), ((x1,y1), P{}),...]
 They have some commonality (all along a row, column, or within a group (box)
@@ -239,9 +208,49 @@ def compareRowAndColumnPossibilities():
         comparePossibilities(l)
         l = []
     
-    
+'''If within a group 2 cells have only 2 possible values they can take on, and they are the same values, they elimininate those options for others
+TODO generalize to many, this is specific to 2
+TODO use for row + column as well, currently only applied to box groups
+'''    
+def findMatchedPossibilities(commonList):
+    for i in range(len(commonList)):
+        for j in range(i+1, len(commonList)):
+            xyPos, possibleStates = commonList[i]
+            xyPos2, possibleStates2 = commonList[j]
+            #Do they have the same possible states + only 2 total???
+            if possibleStates == possibleStates2 and len(possibleStates) == 2:
+                #eliminate the 2 variables as many ways as we can!
+                removeThese = list(possibleStates)
+
+                #start with neighbors
+                for c in commonList:
+                    if c[0] == xyPos or c[0] == xyPos2:
+                        pass #they become the 2 states, should not be altered
+                    else:
+                        pythonBoilerplate(c[0], cellPossibilities, removeThese[0])
+                        pythonBoilerplate(c[0], cellPossibilities, removeThese[1])
+                        
+                        
+                #check if they are in line col/row-wise, apply again
+                #share a column
+                if xyPos[0] == xyPos2[0]:
+                    for z in range(8):
+                        constructedTuple = (xyPos[0], z)
+                        if constructedTuple != xyPos and constructedTuple != xyPos2:
+                            pythonBoilerplate(constructedTuple, cellPossibilities, removeThese[0])
+                            pythonBoilerplate(constructedTuple, cellPossibilities, removeThese[1])
+                
+                #share a row
+                if xyPos[1] == xyPos2[1]:
+                    for z in range(8):
+                        constructedTuple = (z, xyPos[1])
+                        if constructedTuple != xyPos and constructedTuple != xyPos2:
+                            pythonBoilerplate(constructedTuple, cellPossibilities, removeThese[0])
+                            pythonBoilerplate(constructedTuple, cellPossibilities, removeThese[1])
+                                          
+            j+=1
+
 def solve():
-    
     iterations = 1
     while True:
         knownState = cellPossibilities.__str__()  # state prior to any operations
@@ -272,6 +281,7 @@ def solve():
         # completed a single iteration, multiple may be required
         compareBoxPossibilities()
         compareRowAndColumnPossibilities()
+
         if cellPossibilities.__str__() == knownState:  # performed all ops and didn't make any headway... stop looping
             print("Not making any progress. Need more solving techniques")
             break
@@ -280,6 +290,9 @@ def solve():
         
         
 def readInGame(q):
+    if len(board) > 0: #Read in a new one
+        board.clear()
+        
     tokens = q.split()
    # numPipes = 0
     currRow = []
@@ -310,20 +323,6 @@ def readInGame(q):
             currRow = []
 
 
-# def testEasy():
-#     readInGame()
-
-evil = ''' 
- 5 3 _  | _ _ _  |  _ _ 6
- _ _ 2  | _ _ 4  |  _ _ _  
- _ _ _  | _ 6 5  | 8 _ _  
- _ 8 _  | _ _ 2  | _ 9 _  
- _ _ 7  | 4 _ 8  | 1 _ _  
- _ 4 _  | 3 _ _  | _ 6 _  
- _ _ 6  | 5 9 _  | _ _ _  
- _ _ _  | 1 _ _  | 6 _ _  
- 4 _ _  | _ _ _  | _ 5 9  
-'''
 template = ''' 
  _ _ _  | 5 _ 8  | 1 _ 7  
  _ 3 _  | _ _ _  | _ _ _  
@@ -338,56 +337,42 @@ template = '''
  9 _ 4  | 6 _ 5  | _ _ _ 
 '''
 
-
-hard = '''
- _ 8 4  | _ _ _  | _ _ _  
- 2 _ _  | 8 _ _  | _ 5 7  
- 5 _ _  | _ _ 9  | 4 _ _  
+t2 = '''  
+  _ 3 _  | _ _ _  | _ _ 5  
+ _ 2 4  | 9 _ _  | _ _ 1  
+ _ 6 _  | _ _ 4  | _ _ 7  
 ----------------------
- _ _ 2  | _ 1 _  | 3 9 5  
- _ _ _  | _ _ _  | _ _ _  
- 4 1 8  | _ 3 _  | 2 _ _  
+ _ _ _  | 4 _ 5  | _ 6 _  
+ _ _ _  | 3 _ 7  | _ _ _  
+ _ 1 _  | 8 _ 2  | _ _ _  
  ----------------------
- _ _ 9  | 5 _ _  | _ _ 1  
- 3 4 _  | _ _ 6  | _ _ 8  
- _ _ _  | _ _ _  | 7 3 _ '''
+ 8 _ _  | 5 _ _  | _ 2 _  
+ 4 _ _  | _ _ 3  | 8 7 _  
+ 3 _ _  | _ _ _  | _ 5 _  '''
+# readInGame(t2)
 
-easy = ''' 
- 3 _ 5  | 6 _ _  | _ 1 _  
- 9 6 8  | 4 _ _  | _ _ 2  
- _ _ _  | _ 7 _  | 9 _ 6  
-----------------------
- _ _ _  | _ _ 8  | 4 _ _  
- _ 8 _  | _ _ _  | _ 7 _  
- _ _ 4  | 9 _ _  | _ _ _  
- ----------------------
- 5 _ 3  | _ 1 _  | _ _ _  
- 8 _ _  | _ _ 4  | 1 9 3  
- _ 9 _  | _ _ 3  | 2 _ 5 '''
-
-readInGame(template)
-
-# print(getRow(0))
-#  
-# print(getCol(0))
-#  
-# printBoard()
-#  
-# print(getBoxNeighbors(8, 8))
-# printNeighborsAsBox(8, 8)
-solve()
+# solve()
 
 
+
+def deSerializeGame(uri):
+    with open(uri,'r') as f:
+        lines = f.readlines()
+        return ''.join(lines)
+    
+
+print(deSerializeGame("../puzzles/inputs/Easy_8313081943"))
+
+#needs work, not using
 def serializeSolution():
     
-    f = open("C:\\Users\\User\\Desktop\\Dev\\workspaces\\LiClipse2\\Sudoku\\output\\easy", "x")
-    for row in board:
-        for i in len(row):
-            f.write(row[i] + " ")
-            if i == 2 or i == 5:
-                f.write("\ ")
-        f.write("\n")
-    f.flush()
+    with open("C:\\Users\\User\\Desktop\\Dev\\workspaces\\LiClipse2\\Sudoku\\output\\easy", "x") as f:
+        for row in board:
+            for i in len(row):
+                f.write(row[i] + " ")
+                if i == 2 or i == 5:
+                    f.write("\ ")
+            f.write("\n")
+        
 
 # serializeSolution()
-# print (isvalidBoard())
