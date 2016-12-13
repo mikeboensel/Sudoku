@@ -5,6 +5,7 @@ Created on Dec 4, 2016
 '''
 
 from SudokuTools import * 
+import cProfile
 
 board = []
 cellPossibilities = {}  # hashMap for position sets (possible values a cell can take)
@@ -150,11 +151,11 @@ def updateUnknownCell(x, y, val):
 
 '''allNeighbors = [((x,y), setOfPossibleVals),....]
 '''
-def combineOtherSets(allNeighbors, i):
+def combineOtherSets(allNeighbors, exclusions):
     s = set()
-    for j in range(len(allNeighbors)):
-        if j != i:
-            s.update(allNeighbors[j][1])
+    for xy, possibleVals in allNeighbors:
+        if xy not in exclusions:
+            s.update(possibleVals)
     return s
 
 
@@ -171,19 +172,18 @@ def compareBoxPossibilities():
         findMatchedPossibilities(allNeighbors)    
                 
 ''' Expected list of form [((x,y), {}), ((x1,y1), P{}),...]
-They have some commonality (all along a row, column, or within a group (box)
+They have some commonality (all along a row, column, or within a group (box))
 Iterate through, picking a "target cell".
 Combine not solved, non-"target" cells, take difference of "target" from group.
 Anything it and only it can be? If so set cell to that value, apply new info to possibilities
 '''
 def comparePossibilities(commonList):
-    for i in range(len(commonList)):
-        cellX, cellY = commonList[i][0]
-        cellSet = commonList[i][1].copy()
-        othersSet = combineOtherSets(commonList, i)
+    for xy, possibleVals in commonList:
+        othersSet = combineOtherSets(commonList, [xy])
+        cellSet = possibleVals.copy()
         cellSet.difference_update(othersSet)
-        if len(cellSet) == 1:  # must be this value
-            updateUnknownCell(cellX, cellY, (list(cellSet))[0])  # possible set change as we are iterating over this list of sets issue?
+        if len(cellSet) == 1:  # must be the only value left
+            updateUnknownCell(xy[0], xy[1], getRemainingVal(cellSet))  # possible set change as we are iterating over this list of sets issue?
 
     
 def compareRowAndColumnPossibilities():
@@ -250,6 +250,11 @@ def findMatchedPossibilities(commonList):
                                           
             j+=1
 
+
+def getRemainingVal(s):
+    return list(s)[0]
+
+
 def solve():
     iterations = 1
     while True:
@@ -260,9 +265,12 @@ def solve():
             for x in range(9):
                 if row[x] != '_':
                     continue  # value already known
-                
-                s = set(["1", "2", "3", "4", "5", "6", "7", "8", "9"])  # all possibilities
-                # start whittling down what cell can be
+                s = None
+                if (x,y) not in cellPossibilities:
+                    s = set(["1", "2", "3", "4", "5", "6", "7", "8", "9"])  # all possibilities
+                else:
+                    s = cellPossibilities[(x,y)]
+                # start whittling down what cell can be, only uses definite values, not possible states here
                 neighborSet = set(getBoxNeighbors(x, y))
                 s.difference_update(neighborSet)
                 
@@ -273,12 +281,11 @@ def solve():
                 s.difference_update(rowSet)
                                 
                 if len(s) == 1:  # only one value remains, solved the cell
-                    updateUnknownCell(x, y, (list(s))[0])
+                    updateUnknownCell(x, y, getRemainingVal(s))
                 else:
                     cellPossibilities[(x, y)] = s
             
-                
-        # completed a single iteration, multiple may be required
+        #Looked for all the simple stuff, move onto non-definite values        
         compareBoxPossibilities()
         compareRowAndColumnPossibilities()
 
@@ -286,7 +293,7 @@ def solve():
             print("Not making any progress. Need more solving techniques")
             break
         
-        iterations += 1  # TODO shouldn't need multiple iterations. Should be enough to just follow the thread that discoveries make...
+        iterations += 1  # TODO Do we really need multiple iterations? Should be enough to just follow the thread that discoveries make...
         
         
 def readInGame(q):
@@ -360,8 +367,9 @@ def deSerializeGame(uri):
         lines = f.readlines()
         return ''.join(lines)
     
+# cProfile.run('readInGame(deSerializeGame("../puzzles/inputs/Easy_8313081943")); solve()')
 
-print(deSerializeGame("../puzzles/inputs/Easy_8313081943"))
+# print(deSerializeGame("../puzzles/inputs/Easy_8313081943"))
 
 #needs work, not using
 def serializeSolution():
