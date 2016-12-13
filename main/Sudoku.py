@@ -7,7 +7,7 @@ Created on Dec 4, 2016
 from SudokuTools import * 
 import cProfile
 
-board = []
+board = [] # will store as [row][column]
 cellPossibilities = {}  # hashMap for position sets (possible values a cell can take)
 
 # useful in combo with the findNeighborRange() to get all box members
@@ -40,6 +40,9 @@ def getCol(x):
         
     return col
 
+'''
+Returns a number or _ (unknown)
+'''
 def getPosition(x, y):
     row = getRow(y)
     return row[x]
@@ -63,28 +66,29 @@ def printNeighborsAsBox(x, y):
             out = ''
     print(out)
     
-'''Print row by row, with standard box looking format (pipes (|) and minuses (-))
+'''Get string representation:
+Row by row, with standard box looking format (pipes (|) and minuses (-))
 '''
-def printBoard():
-    global totalSolved
-    totalSolved += 1
 
-    print("{} cells solved:".format(totalSolved))
-    
+def boardToString():
     out = ''
+
     for y in range(9):  # for reach row
         if y == 3 or y == 6:
-            print('----------------------')
+            out+= '\n----------------------\n'
         row = getRow(y)
         for x in range(9):  # print a nice spaced, | delimited output
             if x == 3 or x == 6:
                 out += '| '
-            out += row[x]
+            out += str(row[x])
             out += ' '
             
-        print(out)
-        out = ''
-        
+        out += '\n'
+
+    return out
+
+def printBoard():    
+    print(boardToString())
     print("\n\n")
         
 def isvalidBoard():
@@ -136,6 +140,11 @@ def updateUnknownCell(x, y, val):
     print("Updating cell ({},{}) to {}".format(x, y, val))
     board[y][x] = val
     
+    global totalSolved
+    totalSolved += 1
+
+    print("{} cells solved:".format(totalSolved))
+
     printBoard()
     
     test = isvalidBoard()
@@ -295,7 +304,9 @@ def solve():
         
         iterations += 1  # TODO Do we really need multiple iterations? Should be enough to just follow the thread that discoveries make...
         
-        
+
+    
+
 def readInGame(q):
     if len(board) > 0: #Read in a new one
         board.clear()
@@ -331,17 +342,17 @@ def readInGame(q):
 
 
 template = ''' 
- _ _ _  | 5 _ 8  | 1 _ 7  
- _ 3 _  | _ _ _  | _ _ _  
- _ _ 6  | _ _ 9  | _ _ 5  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
 ----------------------
- _ 2 _  | _ _ _  | 8 _ 4  
- _ _ 5  | _ 7 _  | 3 _ _  
- 1 _ 3  | _ _ _  | _ 6 _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
  ----------------------
- 3 _ _  | 9 _ _  | 6 _ _  
- _ _ _  | _ _ _  | _ 1 _  
- 9 _ 4  | 6 _ 5  | _ _ _ 
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _  
+ _ _ _  | _ _ _  | _ _ _ 
 '''
 
 t2 = '''  
@@ -359,7 +370,8 @@ t2 = '''
 # readInGame(t2)
 
 # solve()
-
+def createEmptyGame():
+    readInGame(template)
 
 
 def deSerializeGame(uri):
