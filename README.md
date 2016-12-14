@@ -1,6 +1,6 @@
 # Sudoku
 Simple Solver
-
+Simple edit
 Takes input of the format:
  _ _ _  | _ _ _  | _ _ _  
  _ _ _  | _ _ _  | _ _ _  
