@@ -15,6 +15,10 @@ cellFromEachBox = [(0, 0), (0, 4), (0, 8), (4, 0), (4, 4), (4, 8), (8, 0), (8, 4
 
 totalSolved = 0
 
+weHaveSolution = False
+
+isDebugOn = False
+
 #TODO
 #exclusionList = cells not to remove possibilities from (ex: in cases where 2 cells in a row have the same 2 values and MUST take those values, eliminating them for other cells, BUT crucially they are still possibilities for these 2 cells (we just don't know which belongs in which yet)
 #abstract to be fed a list of cells, then we just feed in neighbors, row, or col
@@ -75,7 +79,7 @@ def boardToString():
 
     for y in range(9):  # for reach row
         if y == 3 or y == 6:
-            out+= '\n----------------------\n'
+            out+= '----------------------\n'
         row = getRow(y)
         for x in range(9):  # print a nice spaced, | delimited output
             if x == 3 or x == 6:
@@ -89,7 +93,7 @@ def boardToString():
 
 def printBoard():    
     print(boardToString())
-    print("\n\n")
+    print("\n***********************************************************")
         
 def isvalidBoard():
     for i in range(9):
@@ -137,15 +141,15 @@ def updateUnknownCell(x, y, val):
     if existingVal != '_':
         print("Bad attempt to update cell ({},{} ), tried to overwrite existing {} with {}".format(x, y, existingVal, val))
         exit
-    print("Updating cell ({},{}) to {}".format(x, y, val))
+    if isDebugOn: print("Updating cell ({},{}) to {}".format(x, y, val))
     board[y][x] = val
     
     global totalSolved
     totalSolved += 1
 
-    print("{} cells solved:".format(totalSolved))
+    if isDebugOn: print("{} cells solved:".format(totalSolved))
 
-    printBoard()
+    if isDebugOn: printBoard()
     
     test = isvalidBoard()
     if test[0] == False:
@@ -265,10 +269,13 @@ def getRemainingVal(s):
 
 
 def solve():
+    print("Solving this puzzle:")
+    printBoard()
+    
     iterations = 1
     while True:
         knownState = cellPossibilities.__str__()  # state prior to any operations
-        print("Iterations of main loop: {}".format(iterations))
+        if isDebugOn: print("Iterations of main loop: {}".format(iterations))
         for y in range(9):
             row = getRow(y)
             for x in range(9):
@@ -298,12 +305,18 @@ def solve():
         compareBoxPossibilities()
         compareRowAndColumnPossibilities()
 
+        if len(cellPossibilities) == 0:
+            print("Puzzle solved")
+            global weHaveSolution
+            weHaveSolution = True
+            break
         if cellPossibilities.__str__() == knownState:  # performed all ops and didn't make any headway... stop looping
             print("Not making any progress. Need more solving techniques")
             break
         
         iterations += 1  # TODO Do we really need multiple iterations? Should be enough to just follow the thread that discoveries make...
-        
+    
+    printBoard() #print solution (or all progress)
 
     
 
